@@ -1,0 +1,70 @@
+html {
+    scroll-behavior: smooth;
+}
+
+.navebar {
+    display: flex;
+    justify-content: space-between;
+    padding: 1%;
+    font-size: 30px;
+    color: #333;
+    align-items: center;
+}
+
+.button {
+    display: flex;
+}
+
+.button > li {
+    padding: 10px;
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+    color: #333;
+}
+
+.text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+}
+
+.about {
+    padding: 24px;
+    width: 100%;
+    background-image: url('./bg.png');
+    background-position-y: -215px;
+}
+
+.about1 {
+    width: 100%;
+}
+
+.about > h1 {
+    font-size: 50px;
+}
+
+.about1 > h1 {
+    font-size: 50px;
+}
+
+img {
+    width: 200px;
+    height: auto;
+}
+
+.no {
+    padding: 20px;
+    color: white;
+    text-align: center;
+    font-size: 25px;
+}
+
+.desc {
+    font-size: 20px;
+    color: white;
+}
