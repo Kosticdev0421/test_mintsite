@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { connect } from "./redux/blockchain/blockchainActions";
 import { fetchData } from "./redux/data/dataActions";
+import axios from "axios";
 import * as s from "./styles/globalStyles";
 import styled from "styled-components";
 import './app.css'
@@ -91,6 +92,7 @@ function App() {
   const [feedback, setFeedback] = useState(`Claim up to 2 TESTS!`);
   const [mintAmount, setMintAmount] = useState(1);
   const [mytokens, setMyTokens] = useState([]);
+  const [tokenDatas, setTokenDatas] = useState([]);
   const [CONFIG, SET_CONFIG] = useState({
     CONTRACT_ADDRESS: "",
     SCAN_LINK: "",
@@ -115,8 +117,6 @@ function App() {
     let gasLimit = CONFIG.GAS_LIMIT;
     let totalCostWei = String(cost * mintAmount);
     let totalGasLimit = String(gasLimit * mintAmount);
-    console.log("Cost: ", totalCostWei);
-    console.log("Gas limit: ", totalGasLimit);
     setFeedback(`Purchasing your ${CONFIG.NFT_NAME}...`);
     setClaimingNft(true);
     blockchain.smartContract.methods
@@ -165,7 +165,6 @@ function App() {
         console.log(receipt);
         setClaimingNft1(false);
         dispatch(fetchData(blockchain.account));
-        // window.location.reload();
         dispatch(connect());
       });
 
@@ -200,6 +199,22 @@ function App() {
     }
   }
 
+  const getiamgeURL = async () => {
+    if (blockchain.smartContract != null && mytokens.length > 0) {
+      let tokenDatas_temp = []
+      for (let i = 0; i < mytokens.length; i++) {
+        const tokenURI = await blockchain.smartContract.methods.tokenURI(mytokens[i]).call();
+        const imageUrl = (await axios.get(tokenURI)).data?.image;
+        const usefulURL = imageUrl.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
+        let tokenData = {};
+        tokenData.id = mytokens[i];
+        tokenData.image = usefulURL;
+        tokenDatas_temp[tokenDatas_temp.length] = tokenData
+      }
+      setTokenDatas(tokenDatas_temp)
+    }
+  }
+
   const getConfig = async () => {
     const configResponse = await fetch("/config/config.json", {
       headers: {
@@ -216,8 +231,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    getData();
+    getiamgeURL();
+  }, [mytokens])
+
+  useEffect(() => {
     getTokenId();
+    getData();
   }, [blockchain.account]);
 
   return (
@@ -228,7 +247,7 @@ function App() {
         <div className="logo"></div>
         <div className="menubar">
           <ul className="button">
-            <li onClick={() => dispatch(connect())}>Connect</li>
+            <li onClick={() => { dispatch(connect()) }}>Connect</li>
             <li><a href="#about">About</a></li>
             <li><a href="#refund">Refund</a></li>
           </ul>
@@ -426,51 +445,45 @@ function App() {
             <s.SpacerSmall />
             <>
               {blockchain.account === "" ||
-                blockchain.smartContract === null ? (
+                blockchain.smartContract === null || mytokens.length == 0 ? (
                 <>
                   <p className="desc">No NFT</p>
                   <s.SpacerSmall />
                 </>
               ) : (
                 <>
-                  {mytokens ? (
-                    <>
-                      {
-                        mytokens.map((ids) => (
-                          <>
-                            <s.Container ai={"center"} jc={"center"} fd={"row"}>
-                              <s.SpacerMedium />
-                              <img src={img} alt="" />
-                              <s.SpacerMedium />
-                            </s.Container>
+                  {
+                    tokenDatas.map((index) => (
+                        <>
+                          <s.Container ai={"center"} jc={"center"} fd={"row"}>
                             <s.SpacerMedium />
-                            <s.Container ai={"center"} jc={"center"} fd={"row"}>
-                              <h1 className="desc">NFT {ids}</h1>
-                            </s.Container>
+                            {
+
+                              <img src={index.image} key={index} alt="" />
+
+                            }
                             <s.SpacerMedium />
-                            <s.Container ai={"center"} jc={"center"} fd={"row"}>
-                              <StyledButton
-                                disabled={claimingNft1 ? 1 : 0}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  refund(ids);
-                                  getData();
-                                }}
-                              >
-                                {claimingNft1 ? "Waiting.." : "REFUND"}
-                              </StyledButton>
-                            </s.Container>
-                            <s.SpacerMedium />
-                          </>
-                        ))
-                      }
-                    </>
-                  ) : (
-                    <>
-                      <p className="desc">No NFT</p>
-                      <s.SpacerSmall />
-                    </>
-                  )}
+                          </s.Container>
+                          <s.SpacerMedium />
+                          <s.Container ai={"center"} jc={"center"} fd={"row"}>
+                            <h1 className="desc">NFT {index.id}</h1>
+                          </s.Container>
+                          <s.SpacerMedium />
+                          <s.Container ai={"center"} jc={"center"} fd={"row"}>
+                            <StyledButton
+                              disabled={claimingNft1 ? 1 : 0}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                refund(index.id);
+                              }}
+                            >
+                              {claimingNft1 ? "Waiting.." : "REFUND"}
+                            </StyledButton>
+                          </s.Container>
+                          <s.SpacerMedium />
+                        </>
+                      ))
+                  }
                 </>
               )}
             </>

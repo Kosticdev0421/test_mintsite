@@ -18,11 +18,12 @@ html {
 .button > li {
     padding: 10px;
     cursor: pointer;
+    color: #2eebc2;
 }
 
 a {
     text-decoration: none;
-    color: #333;
+    color: #2eebc2;
 }
 
 .text {
